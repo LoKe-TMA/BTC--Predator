@@ -1,13 +1,4 @@
-<!-- OnClickA Ads Script -->
-    
-        window.onload = function() {
-            OnClickA.init({
-                apiKey: "074369d78e1444e0d642e6f438898e2c", // OnClickA Dashboard မှ ရယူပါ
-                adUnit: "6084561", // Ad Unit ID ထည့်ပါ
-                container: "task-btn" // Ads ပြမည့် div ID
-            });
-            OnClickA.loadAd(); // Ad ကို Load လုပ်ပါ
-        };
+
     
 // Global game state
 let gameState = {  
