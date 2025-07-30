@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTC Predator - Withdrawal</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div id="withdrawalPage" class="page active">
+            <div class="header">
+                <div class="logo"> 💡 WITHDRAWAL</div>
+            </div>
+
+            <div class="withdrawal-container">
+                <div class="conversion-rate">
+                    <div style="font-size: 18px; font-weight: 700; color: #00ff88;">1000 Points = 0.1 TON</div>
+                    <div style="font-size: 14px; margin-top: 5px;">Current Rate: Real-time</div>
+                </div>
+
+                <div class="withdrawal-form">
+                    <div class="form-group">
+                        <label class="form-label">Wallet Address (TON)</label>
+                        <input type="text" class="form-input" id="walletAddress" placeholder="Enter your TON wallet address">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Points to Withdraw</label>
+                        <input type="number" class="form-input" id="pointAmount" placeholder="Minimum 1000 points" min="1000">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">TON Amount (Auto-calculated)</label>
+                        <input type="text" class="form-input" id="tonAmount" placeholder="0.0 TON" readonly>
+                    </div>
+
+                    <button class="submit-btn" onclick="submitWithdrawal()">SUBMIT WITHDRAWAL REQUEST</button>  
+                </div>  
+            </div>  
+        </div>
+    </div>
+    
+    <!-- Navigation -->  
+    <div class="navigation">  
+        <div class="nav-buttons">  
+            <button class="nav-btn" onclick="window.location.href='index.html'">GAME</button>  
+            <button class="nav-btn" onclick="window.location.href='tasks.html'">TASKS</button>  
+            <button class="nav-btn" onclick="window.location.href='invite.html'">INVITE</button>  
+            <button class="nav-btn active" onclick="window.location.href='withdrawal.html'">WITHDRAW</button>  
+        </div>  
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

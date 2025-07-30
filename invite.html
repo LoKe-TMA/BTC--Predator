@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTC Predator - Invite Friends</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div id="invitePage" class="page active">
+            <div class="header">
+                <div class="logo">👥 INVITE FRIENDS</div>
+            </div>
+            
+            <div class="invite-container">
+                <div class="invite-link">
+                    <div style="margin-bottom: 15px;">📎 Your Link:</div>
+                    <div class="invite-url" id="inviteUrl">https://your-game.com?ref=6457035708</div>
+                    <button class="copy-btn" onclick="copyInviteLink()">📋 COPY LINK</button>
+                </div>
+                
+                <div class="invite-link">
+                    <div style="margin-bottom: 15px;">🎁 You'll get:</div>
+                    <div style="margin-bottom: 10px;">+1 Token per join</div>
+                    <div style="color: #00ff88;">+3 Token when they complete 10 rounds (if not bot)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation -->  
+    <div class="navigation">  
+        <div class="nav-buttons">  
+            <button class="nav-btn" onclick="window.location.href='index.html'">GAME</button>  
+            <button class="nav-btn" onclick="window.location.href='tasks.html'">TASKS</button>  
+            <button class="nav-btn active" onclick="window.location.href='invite.html'">INVITE</button>  
+            <button class="nav-btn" onclick="window.location.href='withdrawal.html'">WITHDRAW</button>  
+        </div>  
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

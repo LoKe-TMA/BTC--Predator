@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTC Predator - Tasks</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div id="tasksPage" class="page active">
+            <div class="header">
+                <div class="logo">📋 TASKS</div>
+            </div>
+            
+            <div class="tasks-container">
+                <div class="task-section">
+                    <h3>📅 Daily Tasks</h3>
+                    <div class="task-item">
+                        <div class="task-info">
+                            <div class="task-title">Daily Login</div>
+                            <div class="task-reward">+1 Token</div>
+                        </div>
+                        <button class="task-btn" onclick="completeTask('dailyLogin', 1)">CLAIM</button>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-info">
+                            <div class="task-title">Watch Video 3 times</div>
+                            <div class="task-reward">+1 Token</div>
+                        </div>
+                        <button class="task-btn" onclick="completeTask('watch3', 1)">WATCH</button>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-info">
+                            <div class="task-title">Watch Video 5 times</div>
+                            <div class="task-reward">+3 Tokens</div>
+                        </div>
+                        <button class="task-btn" onclick="completeTask('watch5', 3)">WATCH</button>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-info">
+                            <div class="task-title">Watch Video 10 times</div>
+                            <div class="task-reward">+10 Tokens</div>
+                        </div>
+                        <button class="task-btn" onclick="completeTask('watch10', 10)">WATCH</button>
+                    </div>
+                </div>
+                
+                <div class="task-section">
+                    <h3>🎯 Permanent Tasks</h3>
+                    <div class="task-item">
+                        <div class="task-info">
+                            <div class="task-title">Invite 10 Friends</div>
+                            <div class="task-reward">+10 Tokens</div>
+                        </div>
+                        <button class="task-btn" disabled>0/10</button>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-info">
+                            <div class="task-title">Invite 100 Friends</div>
+                            <div class="task-reward">+0.1 TON</div>
+                        </div>
+                        <button class="task-btn" disabled>0/100</button>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-info">
+                            <div class="task-title">Invite 500 Friends</div>
+                            <div class="task-reward">+0.5 TON</div>
+                        </div>
+                        <button class="task-btn" disabled>0/500</button>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-info">
+                            <div class="task-title">Join Channel</div>
+                            <div class="task-reward">+1 Token</div>
+                        </div>
+                        <button class="task-btn" onclick="completeTask('joinChannel', 1)">JOIN</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation -->  
+    <div class="navigation">  
+        <div class="nav-buttons">  
+            <button class="nav-btn" onclick="window.location.href='index.html'">GAME</button>  
+            <button class="nav-btn active" onclick="window.location.href='tasks.html'">TASKS</button>  
+            <button class="nav-btn" onclick="window.location.href='invite.html'">INVITE</button>  
+            <button class="nav-btn" onclick="window.location.href='withdrawal.html'">WITHDRAW</button>  
+        </div>  
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
