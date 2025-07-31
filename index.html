@@ -40,7 +40,10 @@
 
   <script>
     // ✅ သင့် AdsGram Publisher ID ထည့်ပါ
-    Adsgram.init("adsgram-93bedb6ad093473d9fe1bd808e0e4641", { debug: true });
+    Adsgram.init({
+      publisherId: "adsgram-93bedb6ad093473d9fe1bd808e0e4641",  // ✅ သင့် ID
+      debug: true
+    });
 
     function showAd() {
       Adsgram.showInterstitial()
