@@ -28,21 +28,21 @@
                             <div class="task-title">Watch Video 3 times</div>
                             <div class="task-reward">+1 Token</div>
                         </div>
-                        <button class="task-btn" onclick="completeTask('watch3', 1)">WATCH</button>
+                        <button class="task-btn" onclick="handleVideoTask('watch3', 1)">WATCH 0/3</button>
                     </div>
                     <div class="task-item">
                         <div class="task-info">
                             <div class="task-title">Watch Video 5 times</div>
                             <div class="task-reward">+3 Tokens</div>
                         </div>
-                        <button class="task-btn" onclick="completeTask('watch5', 3)">WATCH</button>
+                        <button class="task-btn" onclick="handleVideoTask('watch5', 3)">WATCH</button>
                     </div>
                     <div class="task-item">
                         <div class="task-info">
                             <div class="task-title">Watch Video 10 times</div>
                             <div class="task-reward">+10 Tokens</div>
                         </div>
-                        <button class="task-btn" onclick="completeTask('watch10', 10)">WATCH</button>
+                        <button class="task-btn" onclick="handleVideoTask('watch10', 10)">WATCH</button>
                     </div>
                 </div>
                 
@@ -90,29 +90,33 @@
             <button class="nav-btn" onclick="window.location.href='withdrawal.html'">WITHDRAW</button>  
         </div>  
     </div>
-    <!-- OnClickA Rewarded Video Integration -->
-<script src="https://js.onclckmn.com/static/onclicka.js"></script>
-
-<script>
-  function completeTask(taskName, reward) {
-    if (taskName.startsWith('watch')) {
-      // Show Rewarded Ad
-      if (typeof onclicka !== 'undefined') {
-        onclicka.run('074369d78e1444e0d642e6f438898e2c');
-        alert(`🎬 Watch complete!\nYou earned +${reward} Token(s)`);
-        
-        // Optionally: call backend API to store token
-        // fetch("/api/claim", { method: "POST", body: JSON.stringify({ task: taskName }) })
-      } else {
-        alert("⚠️ Ad failed to load. Try again later.");
-      }
-    } else {
-      alert(`✅ Task "${taskName}" completed!\nYou earned +${reward} Token(s)`);
-      // TODO: other task logic
-    }
-  }
-</script>
     
     <script src="script.js"></script>
+    <script>
+        // Simple task completion for non-video tasks
+        function completeTask(taskId, reward) {
+            // Get gameState from script.js
+            if (typeof gameState !== 'undefined') {
+                gameState.tokens += reward;
+                if (typeof updateDisplay === 'function') {
+                    updateDisplay();
+                }
+                
+                // Update button
+                const button = event.target;
+                button.textContent = 'COMPLETED';
+                button.disabled = true;
+                button.style.background = '#666';
+                button.onclick = null;
+            }
+        }
+        
+        // Video task handler
+        function handleVideoTask(taskId, reward) {
+            if (typeof handleVideoTask === 'function') {
+                handleVideoTask(taskId, reward);
+            }
+        }
+    </script>
 </body>
 </html>
