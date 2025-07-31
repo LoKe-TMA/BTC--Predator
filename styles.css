@@ -14,12 +14,29 @@ body {
     overflow-x: hidden;
 }
 
-#onclicka-ad {
-    width: 300px;
-    height: 250px;
-    margin: 20px auto;
-    border: 1px solid #eee;
-    background-color: #f9f9f9;
+/* Task reward message */
+.task-reward-message {
+    position: absolute;
+    right: 10px;
+    color: #4CAF50;
+    font-weight: bold;
+    animation: floatUp 1.5s ease-out;
+    opacity: 0;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-20px); opacity: 0; }
+}
+
+/* Task button states */
+.task-btn:disabled {
+    background-color: #666 !important;
+    cursor: not-allowed;
+}
+
+.task-btn.completed {
+    background-color: #4CAF50 !important;
 }
 
 .container {
