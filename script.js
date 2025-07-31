@@ -21,7 +21,7 @@ let priceInterval;
 // --- AdsGram Integration ---
 const AdsGram = window.AdsGram;
 let interstitialAd = null; // Declare a variable to hold our interstitial ad instance
-const PUBLISHER_ID = 'YOUR_PUBLISHER_ID'; // REPLACE WITH YOUR ACTUAL PUBLISHER ID from AdsGram
+const PUBLISHER_ID = 'a5055de074414ea79f26aa3b1718fcde'; // REPLACE WITH YOUR ACTUAL PUBLISHER ID from AdsGram
 const INTERSTITIAL_AD_UNIT_ID = 'YOUR_INTERSTITIAL_AD_UNIT_ID'; // REPLACE WITH YOUR ACTUAL INTERSTITIAL AD UNIT ID
 
 // Initialize AdsGram when the DOM is loaded
