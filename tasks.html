@@ -90,6 +90,28 @@
             <button class="nav-btn" onclick="window.location.href='withdrawal.html'">WITHDRAW</button>  
         </div>  
     </div>
+    <!-- OnClickA Rewarded Video Integration -->
+<script src="https://js.onclckmn.com/static/onclicka.js"></script>
+
+<script>
+  function completeTask(taskName, reward) {
+    if (taskName.startsWith('watch')) {
+      // Show Rewarded Ad
+      if (typeof onclicka !== 'undefined') {
+        onclicka.run('074369d78e1444e0d642e6f438898e2c');
+        alert(`🎬 Watch complete!\nYou earned +${reward} Token(s)`);
+        
+        // Optionally: call backend API to store token
+        // fetch("/api/claim", { method: "POST", body: JSON.stringify({ task: taskName }) })
+      } else {
+        alert("⚠️ Ad failed to load. Try again later.");
+      }
+    } else {
+      alert(`✅ Task "${taskName}" completed!\nYou earned +${reward} Token(s)`);
+      // TODO: other task logic
+    }
+  }
+</script>
     
     <script src="script.js"></script>
 </body>
