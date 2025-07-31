@@ -22,7 +22,7 @@ let priceInterval;
 const AdsGram = window.AdsGram;
 let interstitialAd = null; // Declare a variable to hold our interstitial ad instance
 const PUBLISHER_ID = 'a5055de074414ea79f26aa3b1718fcde'; // REPLACE WITH YOUR ACTUAL PUBLISHER ID from AdsGram
-const INTERSTITIAL_AD_UNIT_ID = 'int-13300'; // REPLACE WITH YOUR ACTUAL INTERSTITIAL AD UNIT ID
+const INTERSTITIAL_AD_UNIT_ID = 'int-13288'; // REPLACE WITH YOUR ACTUAL INTERSTITIAL AD UNIT ID
 
 // Initialize AdsGram when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
