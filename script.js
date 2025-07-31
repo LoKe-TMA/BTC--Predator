@@ -7,185 +7,149 @@ let gameState = {
     countdown: 30,
     prediction: null,
     startPrice: null,
-    videoWatches: {
+    // Add a state to track task progress, especially for watch video tasks
+    taskProgress: {
         watch3: 0,
         watch5: 0,
-        watch10: 0,
-        lastWatchTime: 0 // To track cooldown
-    },
-    adCooldown: 30000 // 30 seconds cooldown for ads
+        watch10: 0
+    }
 };
 
-// Add this to your initialization
-function initGame() {
-    updateDisplay();
-    startPriceUpdates();
-    loadAdsterraScript(); // Load Adsterra when game initializes
+let countdownInterval;
+let priceInterval;
 
-    // Load saved video watch counts
-    const savedWatches = localStorage.getItem('videoWatches');
-    if (savedWatches) {
-        gameState.videoWatches = JSON.parse(savedWatches);
-        // Ensure lastWatchTime is loaded or set if not present
-        if (!gameState.videoWatches.lastWatchTime) {
-            gameState.videoWatches.lastWatchTime = 0;
-        }
-        updateVideoTaskButtons();
-    }
-}
+// --- AdsGram Integration ---
+const AdsGram = window.AdsGram;
+let interstitialAd = null; // Declare a variable to hold our interstitial ad instance
+const PUBLISHER_ID = 'YOUR_PUBLISHER_ID'; // REPLACE WITH YOUR ACTUAL PUBLISHER ID from AdsGram
+const INTERSTITIAL_AD_UNIT_ID = 'YOUR_INTERSTITIAL_AD_UNIT_ID'; // REPLACE WITH YOUR ACTUAL INTERSTITIAL AD UNIT ID
 
-// Add this new function to load Adsterra
-function loadAdsterraScript() {
-    // Check if Adsterra script is already present to avoid multiple loads
-    if (!document.querySelector('script[src*="profitableratecpm.com"]')) {
-        const script = document.createElement('script');
-        script.src = '//pl27308805.profitableratecpm.com/78/07/eb/7807ebd575eccf3c0689f974371218ca.js';
-        script.async = true; // Load asynchronously
-        script.onload = function() {
-            console.log('Adsterra script loaded');
-        };
-        script.onerror = function() {
-            console.error('Failed to load Adsterra script');
-        };
-        document.head.appendChild(script);
-    }
-}
+// Initialize AdsGram when the DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initGame();
+    setupEventListeners();
+    initAdsGram(); // Call AdsGram initialization
+});
 
-// Replace your existing handleVideoTask function with this enhanced version
-function handleVideoTask(taskId, reward) {
-    // Check cooldown
-    const now = Date.now();
-    if (now - gameState.videoWatches.lastWatchTime < gameState.adCooldown) {
-        const remainingSeconds = Math.ceil((gameState.adCooldown - (now - gameState.videoWatches.lastWatchTime)) / 1000);
-        alert(`Please wait ${remainingSeconds} seconds before watching another ad.`);
-        return;
-    }
+function initAdsGram() {
+    if (AdsGram) {
+        AdsGram.init(PUBLISHER_ID);
+        console.log('AdsGram initialized with Publisher ID:', PUBLISHER_ID);
 
-    // Attempt to show the Adsterra popunder ad
-    try {
-        if (typeof AdsterraPopunder !== 'undefined') { // Adsterra's global object for popunder
-            // Adsterra's popunder usually works by including their script, it directly injects the ad.
-            // There's no explicit `Adsterra.load('popunder', { id: YOUR_ADSTERRA_ID })` method for popunder ads.
-            // The script itself handles the display.
-            console.log('Adsterra popunder should be displayed.');
-        } else {
-            console.log('Adsterra script not fully loaded or AdsterraPopunder is undefined, using fallback logic.');
-            // Fallback for when Adsterra might not be ready or fails
-        }
+        // Create an Interstitial Ad instance
+        interstitialAd = new AdsGram.InterstitialAd(INTERSTITIAL_AD_UNIT_ID);
 
-        // --- Important: You'll need to decide how to truly "confirm" an ad watch with Adsterra ---
-        // Adsterra popunders usually just open a new tab. You don't get a direct callback
-        // for "ad watched" in the same way you would with an interstitial or rewarded video.
-        // For a simple game, you might just count it as watched immediately after attempting to show.
-        // For a more robust solution, you'd need to explore Adsterra's API for actual confirmation,
-        // which might involve server-side integration or a different ad format.
-        // For this client-side example, we'll proceed as if the ad was shown.
+        // Set up event listeners for the interstitial ad
+        interstitialAd.on('load', () => {
+            console.log('Interstitial Ad loaded successfully!');
+        });
 
-        // Increment watch count and update last watch time
-        gameState.videoWatches[taskId]++;
-        gameState.videoWatches.lastWatchTime = now;
-        localStorage.setItem('videoWatches', JSON.stringify(gameState.videoWatches));
+        interstitialAd.on('loadfail', (error) => {
+            console.error('Interstitial Ad failed to load:', error);
+            // Optionally, handle ad load failure (e.g., show a message to user)
+        });
 
-        // Update UI immediately
-        updateVideoTaskButtons();
+        interstitialAd.on('show', () => {
+            console.log('Interstitial Ad shown!');
+        });
 
-        // Check if task completed
-        const requiredViews = parseInt(taskId.replace('watch', ''));
-        if (gameState.videoWatches[taskId] >= requiredViews) {
-            completeVideoTask(taskId, reward);
-        }
+        interstitialAd.on('showfail', (error) => {
+            console.error('Interstitial Ad failed to show:', error);
+            // Optionally, handle ad show failure
+        });
 
-        // Show reward message (assuming ad display was successful enough)
-        showTaskReward(reward);
+        interstitialAd.on('click', () => {
+            console.log('Interstitial Ad clicked!');
+        });
 
-    } catch (error) {
-        console.error('Error attempting to show Adsterra ad:', error);
-        // Even if there's an error showing the ad, you might still want to reward the user
-        // to avoid a bad user experience. Adjust this logic as per your game's policy.
-        // completeVideoTask(taskId, reward); // Uncomment if you want to reward even on ad failure
-        alert('Could not display ad. Please try again later.');
-    }
-}
+        interstitialAd.on('close', () => {
+            console.log('Interstitial Ad closed.');
+            // This is crucial: After the ad closes, complete the "watch video" task
+            // We need to know which task button was just interacted with.
+            // A simple way is to use a global variable or pass context.
+            if (window.currentVideoTaskButton) {
+                const taskId = window.currentVideoTaskButton.getAttribute('data-task-id');
+                const reward = parseInt(window.currentVideoTaskButton.getAttribute('data-reward'));
+                const requiredWatches = parseInt(window.currentVideoTaskButton.getAttribute('data-required-watches'));
 
-// Add this new helper function
-function showTaskReward(reward) {
-    const rewardElement = document.createElement('div');
-    rewardElement.className = 'task-reward-message';
-    rewardElement.textContent = `+${reward} Token${reward > 1 ? 's' : ''}`;
+                // Increment watched count and update button text
+                gameState.taskProgress[taskId]++;
+                window.currentVideoTaskButton.textContent = `WATCH ${gameState.taskProgress[taskId]}/${requiredWatches}`;
 
-    // Get the button that triggered the event (assuming 'event' is available in the scope or passed)
-    // A more robust way would be to pass the button element directly or use event.currentTarget
-    const button = event.target; // This assumes handleVideoTask is called from an onclick attribute directly
-    if (button && button.parentNode) {
-        button.parentNode.appendChild(rewardElement);
+                if (gameState.taskProgress[taskId] >= requiredWatches) {
+                    completeTask(window.currentVideoTaskButton, taskId, reward);
+                }
+                window.currentVideoTaskButton = null; // Clear reference
+            }
+        });
 
-        setTimeout(() => {
-            rewardElement.remove();
-        }, 2000);
+        // Pre-load the ad to be ready when needed
+        loadInterstitialAd();
+
     } else {
-        // Fallback if button or its parent isn't found
-        console.log(`Rewarded ${reward} tokens.`);
+        console.error('AdsGram SDK not found. Make sure the script is correctly loaded.');
     }
 }
 
-// Update your existing completeVideoTask function
-function completeVideoTask(taskId, reward) {
-    gameState.tokens += reward;
-    updateDisplay();
-
-    // Reset counter if needed (only if the task is actually completed)
-    const requiredViews = parseInt(taskId.replace('watch', ''));
-    if (gameState.videoWatches[taskId] >= requiredViews) {
-        gameState.videoWatches[taskId] = 0; // Reset for next cycle
-        localStorage.setItem('videoWatches', JSON.stringify(gameState.videoWatches));
-        updateVideoTaskButtons(); // Update button text to reflect reset
-
-        // Update button text to show reset count
-        const button = document.querySelector(`[onclick="handleVideoTask('${taskId}', ${reward})"]`);
-        if (button) {
-            button.textContent = button.textContent.replace(/\d+\/\d+/, `0/${requiredViews}`);
+async function loadInterstitialAd() {
+    if (interstitialAd) {
+        try {
+            await interstitialAd.load();
+        } catch (error) {
+            console.error('Error loading interstitial ad:', error);
         }
     }
 }
 
-// Update your existing updateVideoTaskButtons function
-function updateVideoTaskButtons() {
-    const buttons = {
-        watch3: document.querySelector('[onclick="handleVideoTask(\'watch3\', 1)"]'),
-        watch5: document.querySelector('[onclick="handleVideoTask(\'watch5\', 3)"]'),
-        watch10: document.querySelector('[onclick="handleVideoTask(\'watch10\', 10)"]')
-    };
+async function showInterstitialAd() {
+    if (interstitialAd && interstitialAd.isLoaded()) {
+        try {
+            await interstitialAd.show();
+            // After showing, try to load the next ad for future use
+            loadInterstitialAd();
+        } catch (error) {
+            console.error('Error showing interstitial ad:', error);
+            // If ad fails to show, we might still want to complete the task
+            // or show a fallback. For simplicity, we'll proceed as if shown.
+            if (window.currentVideoTaskButton) {
+                 // Even if ad fails to show, for user experience,
+                 // you might still increment progress or give an error message
+                 // For now, let's just re-load for next attempt.
+                loadInterstitialAd();
+            }
+        }
+    } else {
+        console.warn('Interstitial Ad not loaded. Attempting to load...');
+        await loadInterstitialAd(); // Try to load it
+        if (interstitialAd && interstitialAd.isLoaded()) {
+            await interstitialAd.show(); // Then try to show it again
+            loadInterstitialAd(); // Load next one
+        } else {
+            console.error('Interstitial Ad could not be loaded and shown.');
+            // Fallback: If ad really can't load/show, consider giving the user
+            // task credit anyway to avoid frustration, or offer an alternative.
+            if (window.currentVideoTaskButton) {
+                const taskId = window.currentVideoTaskButton.getAttribute('data-task-id');
+                const reward = parseInt(window.currentVideoTaskButton.getAttribute('data-reward'));
+                const requiredWatches = parseInt(window.currentVideoTaskButton.getAttribute('data-required-watches'));
 
-    for (const [taskId, button] of Object.entries(buttons)) {
-        if (button) {
-            const current = gameState.videoWatches[taskId];
-            const required = parseInt(taskId.replace('watch', ''));
+                console.warn("Ad failed to load/show, still progressing task for user experience.");
+                gameState.taskProgress[taskId]++;
+                window.currentVideoTaskButton.textContent = `WATCH ${gameState.taskProgress[taskId]}/${requiredWatches}`;
 
-            button.textContent = `WATCH ${current}/${required}`;
-            button.disabled = current >= required; // Disable button if task is complete
-
-            if (button.disabled) {
-                button.style.background = '#666';
-                // No need to nullify onclick if disabled handles it, but good practice if button remains clickable
-                // button.onclick = null;
-            } else {
-                button.style.background = ''; // Reset background if re-enabled
-                // Re-enable onclick if it was nullified, though disabled state handles this
-                // button.onclick = () => handleVideoTask(taskId, reward_from_taskId_or_data_attribute);
-                // For this structure, onclick is in HTML, so disabled prop is enough.
+                if (gameState.taskProgress[taskId] >= requiredWatches) {
+                    completeTask(window.currentVideoTaskButton, taskId, reward);
+                }
+                window.currentVideoTaskButton = null;
             }
         }
     }
 }
 
-let countdownInterval;
-let priceInterval;
+// --- End AdsGram Integration ---
 
 // Initialize game when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    initGame();
-    setupEventListeners();
-});
+// This part is moved inside DOMContentLoaded listener above.
 
 // Set up all event listeners
 function setupEventListeners() {
@@ -217,7 +181,51 @@ function setupEventListeners() {
     if (copyBtn) {
         copyBtn.addEventListener('click', copyInviteLink);
     }
+
+    // Task buttons - Original setupEventListeners needs modification.
+    // We will now handle 'watch video' tasks separately
+    // and ensure general task buttons use the new completeTask signature.
+    document.querySelectorAll('.task-section .task-item .task-btn').forEach(button => {
+        // We've already set onclick for these in HTML. If you want to use addEventListener
+        // you'd need to remove the onclick from HTML and modify this part.
+        // For simplicity, sticking with onclick from HTML for now for tasks
+        // that don't involve watching ads.
+    });
+
+    // Initialize the display of watch video task progress
+    initializeWatchVideoTaskDisplay();
 }
+
+function initializeWatchVideoTaskDisplay() {
+    const watch3Btn = document.querySelector('button[onclick*="watchVideoTask(\'watch3\'"]');
+    if (watch3Btn) {
+        watch3Btn.textContent = `WATCH ${gameState.taskProgress.watch3}/3`;
+        if (gameState.taskProgress.watch3 >= 3) {
+            watch3Btn.disabled = true;
+            watch3Btn.textContent = 'COMPLETED';
+            watch3Btn.style.background = '#666';
+        }
+    }
+    const watch5Btn = document.querySelector('button[onclick*="watchVideoTask(\'watch5\'"]');
+    if (watch5Btn) {
+        watch5Btn.textContent = `WATCH ${gameState.taskProgress.watch5}/5`;
+        if (gameState.taskProgress.watch5 >= 5) {
+            watch5Btn.disabled = true;
+            watch5Btn.textContent = 'COMPLETED';
+            watch5Btn.style.background = '#666';
+        }
+    }
+    const watch10Btn = document.querySelector('button[onclick*="watchVideoTask(\'watch10\'"]');
+    if (watch10Btn) {
+        watch10Btn.textContent = `WATCH ${gameState.taskProgress.watch10}/10`;
+        if (gameState.taskProgress.watch10 >= 10) {
+            watch10Btn.disabled = true;
+            watch10Btn.textContent = 'COMPLETED';
+            watch10Btn.style.background = '#666';
+        }
+    }
+}
+
 
 // Update display elements
 function updateDisplay() {
@@ -338,6 +346,40 @@ function showResult(isCorrect) {
     }, 3000);
 }
 
+// Universal function to complete tasks (now called directly for non-video tasks or by ad close listener)
+function completeTask(button, taskId, reward) {
+    gameState.tokens += reward;
+    updateDisplay();
+
+    // Disable button and show completed
+    button.textContent = 'COMPLETED';
+    button.disabled = true;
+    button.style.background = '#666';
+
+    // (Optional) Save state to localStorage to persist task completion
+    // localStorage.setItem(`task_${taskId}_completed`, 'true');
+    // localStorage.setItem(`task_${taskId}_watched`, gameState.taskProgress[taskId]); // For video tasks
+}
+
+// New function to handle "Watch Video" tasks
+async function watchVideoTask(taskId, reward, requiredWatches) {
+    const button = event.target; // Get the button that was clicked
+
+    if (gameState.taskProgress[taskId] >= requiredWatches) {
+        // Task already completed
+        return;
+    }
+
+    // Store a reference to the button so the ad close listener knows which one it is
+    window.currentVideoTaskButton = button;
+
+    // Show the interstitial ad
+    await showInterstitialAd(); // This will handle loading if not already loaded
+
+    // Note: The actual increment and completion will happen in the `interstitialAd.on('close')` event.
+    // This ensures the user must watch (or close) the ad before getting credit.
+}
+
 
 // Copy invite link
 function copyInviteLink(event) {
@@ -357,10 +399,7 @@ function copyInviteLink(event) {
 
 // Calculate TON amount
 function calculateTonAmount() {
-    const pointAmountInput = document.getElementById('pointAmount');
-    if (!pointAmountInput) return;
-
-    const pointAmount = parseInt(pointAmountInput.value) || 0;
+    const pointAmount = parseInt(this.value) || 0;
     const tonAmount = (pointAmount / 1000) * 0.1;
     const tonAmountElement = document.getElementById('tonAmount');
 
@@ -371,16 +410,16 @@ function calculateTonAmount() {
 
 // Submit withdrawal
 function submitWithdrawal() {
-    const walletAddressInput = document.getElementById('walletAddress');
-    const pointAmountInput = document.getElementById('pointAmount');
+    const walletAddress = document.getElementById('walletAddress');
+    const pointAmount = document.getElementById('pointAmount');
 
-    if (!walletAddressInput || !pointAmountInput) return;
+    if (!walletAddress || !pointAmount) return;
 
-    const address = walletAddressInput.value;
-    const points = parseInt(pointAmountInput.value);
+    const address = walletAddress.value;
+    const points = parseInt(pointAmount.value);
 
     if (!address || points < 1000 || points > gameState.points) {
-        alert('Please check your wallet address and point amount! Minimum withdrawal is 1000 points.');
+        alert('Please check your wallet address and point amount!');
         return;
     }
 
@@ -388,9 +427,29 @@ function submitWithdrawal() {
     alert('Withdrawal request submitted! Admin will process within 24 hours.');
 
     // Reset form
-    walletAddressInput.value = "";
-    pointAmountInput.value = "";
+    walletAddress.value = "";
+    pointAmount.value = "";
 
-    const tonAmountElement = document.getElementById('tonAmount');
-    if (tonAmountElement) tonAmountElement.value = "";
+    const tonAmount = document.getElementById('tonAmount');
+    if (tonAmount) tonAmount.value = "";
 }
+
+// Page navigation (for single page version)
+function showPage(pageId) {
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+
+    // Remove active class from all navigators
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Show selected page
+    const page = document.getElementById(pageId);
+    if (page) page.classList.add('active');
+
+    // Add active class to corresponding navigator
+    event.target.classList.add('active');
+        }
