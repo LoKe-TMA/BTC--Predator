@@ -22,29 +22,27 @@ let currentAdLoaded = false;
 document.addEventListener('DOMContentLoaded', function() {
     initGame();
     setupEventListeners();
-    initAdsGram();
+    initOnclicka();
 });
 
-// Initialize AdsGram
-function initAdsGram() {
-    // Load AdsGram SDK if not already loaded
-    if (typeof AdsGram === 'undefined') {
+// Initialize Onclicka
+function initOnclicka() {
+    // Load Onclicka SDK if not already loaded
+    if (typeof Onclicka === 'undefined') {
         const script = document.createElement('script');
-        script.src = 'https://cdn.adsgram.com/sdk/v1/adsgram-sdk.min.js';
+        script.src = 'https://js.onclckmn.com/static/onclicka.js';
         script.onload = function() {
-            setupAdsGram();
+            setupOnclicka();
         };
         document.head.appendChild(script);
     } else {
-        setupAdsGram();
+        setupOnclicka();
     }
 }
 
-function setupAdsGram() {
-    AdsGram.init({
-        apiKey: 'a5055de074414ea79f26aa3b1718fcde', // Replace with your actual API key
-        miniAppId: '8298963434',
-        blockId: 'int-13288',
+function setupOnclicka() {
+    Onclicka.init({
+        publisherId: '074369d78e1444e0d642e6f438898e2c', // Replace with your actual publisher ID
         onReady: function() {
             loadAd();
         }
@@ -52,7 +50,7 @@ function setupAdsGram() {
 }
 
 function loadAd() {
-    AdsGram.loadInterstitial({
+    Onclicka.loadAd({
         onLoaded: function() {
             currentAdLoaded = true;
             console.log('Ad loaded and ready');
@@ -269,7 +267,7 @@ function showInterstitialAd() {
             return;
         }
         
-        AdsGram.showInterstitial({
+        Onclicka.showAd({
             onClosed: function() {
                 console.log('Ad closed');
                 resolve();
@@ -345,4 +343,4 @@ function submitWithdrawal() {
     
     const tonAmount = document.getElementById('tonAmount');
     if (tonAmount) tonAmount.value = "";
-        }
+}
