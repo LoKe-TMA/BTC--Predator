@@ -1,5 +1,3 @@
-
-    
 // Global game state
 let gameState = {  
     tokens: 50,  
@@ -8,22 +6,75 @@ let gameState = {
     gameActive: false,  
     countdown: 30,  
     prediction: null,  
-    startPrice: null
-};  
+    startPrice: null,
+    videoWatches: {
+        watch3: 0,
+        watch5: 0,
+        watch10: 0
+    }
+};
 
 let countdownInterval;
 let priceInterval;
+let currentAdLoaded = false;
 
 // Initialize game when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initGame();
     setupEventListeners();
+    initAdsGram();
 });
+
+// Initialize AdsGram
+function initAdsGram() {
+    // Load AdsGram SDK if not already loaded
+    if (typeof AdsGram === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.adsgram.com/sdk/v1/adsgram-sdk.min.js';
+        script.onload = function() {
+            setupAdsGram();
+        };
+        document.head.appendChild(script);
+    } else {
+        setupAdsGram();
+    }
+}
+
+function setupAdsGram() {
+    AdsGram.init({
+        apiKey: 'a5055de074414ea79f26aa3b1718fcde', // Replace with your actual API key
+        miniAppId: '8298963434',
+        blockId: 'int-13288',
+        onReady: function() {
+            loadAd();
+        }
+    });
+}
+
+function loadAd() {
+    AdsGram.loadInterstitial({
+        onLoaded: function() {
+            currentAdLoaded = true;
+            console.log('Ad loaded and ready');
+        },
+        onFailed: function(error) {
+            console.log('Ad failed to load', error);
+            // Retry after 30 seconds if failed
+            setTimeout(loadAd, 30000);
+        }
+    });
+}
 
 // Initialize game
 function initGame() {
     updateDisplay();
     startPriceUpdates();
+    // Load saved video watch counts
+    const savedWatches = localStorage.getItem('videoWatches');
+    if (savedWatches) {
+        gameState.videoWatches = JSON.parse(savedWatches);
+        updateVideoTaskButtons();
+    }
 }
 
 // Set up all event listeners
@@ -56,12 +107,6 @@ function setupEventListeners() {
     if (copyBtn) {
         copyBtn.addEventListener('click', copyInviteLink);
     }
-    
-    // Task buttons
-    const taskButtons = document.querySelectorAll('.task-btn:not([disabled])');
-    taskButtons.forEach(button => {
-        button.addEventListener('click', completeTask);
-    });
 }
 
 // Update display elements
@@ -73,6 +118,15 @@ function updateDisplay() {
     if (tokenBalance) tokenBalance.textContent = gameState.tokens;
     if (pointBalance) pointBalance.textContent = gameState.points;
     if (btcPrice) btcPrice.textContent = `$${gameState.currentPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+}
+
+// Update video task buttons
+function updateVideoTaskButtons() {
+    const watch3Btn = document.querySelector('[onclick="handleVideoTask(\'watch3\', 1)"]');
+    if (watch3Btn) {
+        watch3Btn.textContent = `WATCH ${gameState.videoWatches.watch3}/3`;
+        watch3Btn.disabled = gameState.videoWatches.watch3 >= 3;
+    }
 }
 
 // Start price updates
@@ -183,22 +237,61 @@ function showResult(isCorrect) {
     }, 3000);
 }
 
-// Complete task
-function completeTask(event) {
-    const button = event.target;
-    const taskId = button.getAttribute('data-task-id');
-    const reward = parseInt(button.getAttribute('data-reward')) || 1;
-    
+// Handle video tasks with ads
+function handleVideoTask(taskId, reward) {
+    showInterstitialAd().then(() => {
+        // Increment watch count
+        gameState.videoWatches[taskId]++;
+        localStorage.setItem('videoWatches', JSON.stringify(gameState.videoWatches));
+        
+        // Update UI
+        updateVideoTaskButtons();
+        
+        // Check if task completed
+        const requiredViews = parseInt(taskId.replace('watch', ''));
+        if (gameState.videoWatches[taskId] >= requiredViews) {
+            completeVideoTask(taskId, reward);
+        }
+        
+        // Preload next ad
+        loadAd();
+    }).catch(error => {
+        console.log('Ad error, but continuing task', error);
+        completeVideoTask(taskId, reward);
+    });
+}
+
+function showInterstitialAd() {
+    return new Promise((resolve, reject) => {
+        if (!currentAdLoaded) {
+            console.log('No ad loaded, skipping');
+            resolve();
+            return;
+        }
+        
+        AdsGram.showInterstitial({
+            onClosed: function() {
+                console.log('Ad closed');
+                resolve();
+            },
+            onFailed: function(error) {
+                console.log('Ad show failed', error);
+                reject(error);
+            }
+        });
+    });
+}
+
+function completeVideoTask(taskId, reward) {
     gameState.tokens += reward;
     updateDisplay();
     
-    // Disable button and show completed
-    button.textContent = 'COMPLETED';
-    button.disabled = true;
-    button.style.background = '#666';
-    
-    // Remove event listener
-    button.removeEventListener('click', completeTask);
+    // Reset counter if needed
+    if (taskId === 'watch3') {
+        gameState.videoWatches.watch3 = 0;
+        localStorage.setItem('videoWatches', JSON.stringify(gameState.videoWatches));
+        updateVideoTaskButtons();
+    }
 }
 
 // Copy invite link
@@ -252,24 +345,4 @@ function submitWithdrawal() {
     
     const tonAmount = document.getElementById('tonAmount');
     if (tonAmount) tonAmount.value = "";
-}
-
-// Page navigation (for single page version)
-function showPage(pageId) {
-    // Hide all pages
-    document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
-    });
-    
-    // Remove active class from all navigators
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Show selected page
-    const page = document.getElementById(pageId);
-    if (page) page.classList.add('active');
-    
-    // Add active class to corresponding navigator
-    event.target.classList.add('active');
-}
+        }
