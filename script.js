@@ -4,7 +4,7 @@ let gameState = {
     points: 1250,  
     currentPrice: 43567.89,  
     gameActive: false,  
-    countdown: 30,  
+    countdown: 10,  
     prediction: null,  
     startPrice: null
 };  
@@ -273,4 +273,4 @@ function showPage(pageId) {
     event.target.classList.add('active');
 }
 
-<script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
