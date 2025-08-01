@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BTC Predator - Play & Earn</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div class="container">
@@ -23,17 +23,17 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="price-container">
                 <div class="price-label">BTC/USDT LIVE PRICE</div>
                 <div class="price-value" id="btcPrice">$43,567.89</div>
             </div>
-            
+
             <div class="timer-container">
                 <div class="timer" id="countdown">30</div>
                 <div class="timer-label">SECONDS REMAINING</div>
             </div>
-            
+
             <div class="prediction-buttons">
                 <button class="prediction-btn up-btn" id="upBtn">
                     UP ⬆️
@@ -42,31 +42,28 @@
                     DOWN ⬇️
                 </button>
             </div>
-            
+
             <div class="result-container" id="resultContainer">
-                <!-- Result will appear here -->
-            </div>
-            
+                </div>
+
             <div class="ad-banner">
                 <div style="opacity: 0.6;">📺 Advertisement Space (728x90)</div>
                 <div style="font-size: 12px; margin-top: 5px;">Your ads could be here!</div>
-            </div>
+                </div>
         </div>
     </div>
-    
-    <!-- Floating Withdrawal Button -->  
-    <button class="withdrawal-float" onclick="showPage('withdrawalPage')" title="Withdrawal"></button>  
-    
-    <!-- Navigation -->  
-    <div class="navigation">  
-        <div class="nav-buttons">  
-            <button class="nav-btn active" onclick="showPage('gamePage')">GAME</button>  
-            <button class="nav-btn" onclick="window.location.href='tasks.html'">TASKS</button>  
-            <button class="nav-btn" onclick="window.location.href='invite.html'">INVITE</button>  
-            <button class="nav-btn" onclick="window.location.href='withdrawal.html'">WITHDRAW</button>  
-        </div>  
+
+    <button class="withdrawal-float" onclick="showPage('withdrawalPage', event)" title="Withdrawal"></button>
+
+    <div class="navigation">
+        <div class="nav-buttons">
+            <button class="nav-btn active" onclick="showPage('gamePage', event)">GAME</button>
+            <button class="nav-btn" onclick="window.location.href='tasks.html'">TASKS</button>
+            <button class="nav-btn" onclick="window.location.href='invite.html'">INVITE</button>
+            <button class="nav-btn" onclick="window.location.href='withdrawal.html'">WITHDRAW</button>
+        </div>
     </div>
-    
+
     <script src="script.js"></script>
 </body>
 </html>
