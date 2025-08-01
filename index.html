@@ -1,61 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AdsGram Interstitial Test</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://ads.adsgram.io/js/sdk.js"></script>
-<script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-  <style>
-    body {
-      margin: 0;
-      padding: 20px;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f5f5f5;
-    }
-
-    button {
-      font-size: 18px;
-      padding: 12px 24px;
-      margin-top: 50px;
-      background-color: #0088cc;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #0077b3;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTC Predator - Play & Earn</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h2>🚀 Interstitial Ad Test</h2>
-  <p>“Show Interstitial Ad” ခလုတ်ကိုနှိပ်ပြီး AdsGram ad တက်သည့်အတိုင်းစမ်းသပ်ပါ။</p>
-
-  <button onclick="showAd()">🎬 Show Interstitial Ad</button>
-
-  <script>
-    // ✅ သင့် AdsGram Publisher ID ထည့်ပါ
-    Adsgram.init({
-      publisherId: "adsgram-93bedb6ad093473d9fe1bd808e0e4641",  // ✅ သင့် ID
-      debug: true
-    });
-
-    function showAd() {
-      Adsgram.showInterstitial()
-        .then(() => {
-          alert("✅ Ad watched or closed.");
-        })
-        .catch((err) => {
-          alert("❌ Failed to show ad: " + err.message);
-          console.error(err);
-        });
-    }
-  </script>
+    <div class="container">
+        <div id="gamePage" class="page active">
+            <div class="header">
+                <div class="logo">🎯 BTC PREDATOR</div>
+                <div class="balance-container">
+                    <div class="balance-item">
+                        <div class="balance-label">TOKENS</div>
+                        <div class="balance-value" id="tokenBalance">50</div>
+                    </div>
+                    <div class="balance-item">
+                        <div class="balance-label">POINTS</div>
+                        <div class="balance-value" id="pointBalance">1250</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="price-container">
+                <div class="price-label">BTC/USDT LIVE PRICE</div>
+                <div class="price-value" id="btcPrice">$43,567.89</div>
+            </div>
+            
+            <div class="timer-container">
+                <div class="timer" id="countdown">30</div>
+                <div class="timer-label">SECONDS REMAINING</div>
+            </div>
+            
+            <div class="prediction-buttons">
+                <button class="prediction-btn up-btn" id="upBtn">
+                    UP ⬆️
+                </button>
+                <button class="prediction-btn down-btn" id="downBtn">
+                    DOWN ⬇️
+                </button>
+            </div>
+            
+            <div class="result-container" id="resultContainer">
+                <!-- Result will appear here -->
+            </div>
+            
+            <div class="ad-banner">
+                <div style="opacity: 0.6;">📺 Advertisement Space (728x90)</div>
+                <div style="font-size: 12px; margin-top: 5px;">Your ads could be here!</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Floating Withdrawal Button -->  
+    <button class="withdrawal-float" onclick="showPage('withdrawalPage')" title="Withdrawal"></button>  
+    
+    <!-- Navigation -->  
+    <div class="navigation">  
+        <div class="nav-buttons">  
+            <button class="nav-btn active" onclick="showPage('gamePage')">GAME</button>  
+            <button class="nav-btn" onclick="window.location.href='tasks.html'">TASKS</button>  
+            <button class="nav-btn" onclick="window.location.href='invite.html'">INVITE</button>  
+            <button class="nav-btn" onclick="window.location.href='withdrawal.html'">WITHDRAW</button>  
+        </div>  
+    </div>
+    
+    <script src="script.js"></script>
 </body>
 </html>
-
