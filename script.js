@@ -12,57 +12,34 @@ let gameState = {
 let countdownInterval;
 let priceInterval;
 
-// Initialize game when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initGame();
     setupEventListeners();
+    initAdsgram(); // ✅ initialize AdsGram
 });
 
-// Initialize game
 function initGame() {
     updateDisplay();
     startPriceUpdates();
 }
 
-// Set up all event listeners
 function setupEventListeners() {
-    // Game page elements
     const upBtn = document.getElementById('upBtn');
     const downBtn = document.getElementById('downBtn');
     
-    if (upBtn) {
-        upBtn.addEventListener('click', () => makePrediction('up'));
-    }
-    
-    if (downBtn) {
-        downBtn.addEventListener('click', () => makePrediction('down'));
-    }
-    
-    // Withdrawal page elements
+    if (upBtn) upBtn.addEventListener('click', () => makePrediction('up'));
+    if (downBtn) downBtn.addEventListener('click', () => makePrediction('down'));
+
     const pointAmountInput = document.getElementById('pointAmount');
-    if (pointAmountInput) {
-        pointAmountInput.addEventListener('input', calculateTonAmount);
-    }
-    
+    if (pointAmountInput) pointAmountInput.addEventListener('input', calculateTonAmount);
+
     const submitWithdrawalBtn = document.getElementById('submitWithdrawalBtn');
-    if (submitWithdrawalBtn) {
-        submitWithdrawalBtn.addEventListener('click', submitWithdrawal);
-    }
-    
-    // Copy invite link button
+    if (submitWithdrawalBtn) submitWithdrawalBtn.addEventListener('click', submitWithdrawal);
+
     const copyBtn = document.getElementById('copyBtn');
-    if (copyBtn) {
-        copyBtn.addEventListener('click', copyInviteLink);
-    }
-    
-    // Task buttons
-    const taskButtons = document.querySelectorAll('.task-btn:not([disabled])');
-    taskButtons.forEach(button => {
-        button.addEventListener('click', completeTask);
-    });
+    if (copyBtn) copyBtn.addEventListener('click', copyInviteLink);
 }
 
-// Update display elements
 function updateDisplay() {
     const tokenBalance = document.getElementById('tokenBalance');
     const pointBalance = document.getElementById('pointBalance');
@@ -73,11 +50,9 @@ function updateDisplay() {
     if (btcPrice) btcPrice.textContent = `$${gameState.currentPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 }
 
-// Start price updates
 function startPriceUpdates() {
     priceInterval = setInterval(() => {
         if (!gameState.gameActive) {
-            // Simulate price movement
             const change = (Math.random() - 0.5) * 100;
             gameState.currentPrice += change;
             gameState.currentPrice = Math.max(gameState.currentPrice, 30000);
@@ -86,7 +61,6 @@ function startPriceUpdates() {
     }, 1000);
 }
 
-// Make prediction
 function makePrediction(direction) {
     if (gameState.gameActive || gameState.tokens < 1) return;
 
@@ -96,18 +70,14 @@ function makePrediction(direction) {
     gameState.gameActive = true;
     gameState.countdown = 30;
 
-    // Disable buttons
     const upBtn = document.getElementById('upBtn');
     const downBtn = document.getElementById('downBtn');
-    
     if (upBtn) upBtn.disabled = true;
     if (downBtn) downBtn.disabled = true;
 
-    // Clear previous result
     const resultContainer = document.getElementById('resultContainer');
     if (resultContainer) resultContainer.innerHTML = "";
 
-    // Start countdown
     countdownInterval = setInterval(() => {
         gameState.countdown--;
         const countdownElement = document.getElementById('countdown');
@@ -121,7 +91,6 @@ function makePrediction(direction) {
     updateDisplay();
 }
 
-// End game and determine result
 function endGame() {
     clearInterval(countdownInterval);
 
@@ -129,13 +98,9 @@ function endGame() {
     const priceChange = endPrice - gameState.startPrice;
 
     let isCorrect = false;
-    if (gameState.prediction === 'up' && priceChange > 0) {
-        isCorrect = true;
-    } else if (gameState.prediction === 'down' && priceChange < 0) {
-        isCorrect = true;
-    }
+    if (gameState.prediction === 'up' && priceChange > 0) isCorrect = true;
+    else if (gameState.prediction === 'down' && priceChange < 0) isCorrect = true;
 
-    // Update points
     if (isCorrect) {
         gameState.points += 10;
         showResult(true);
@@ -144,26 +109,22 @@ function endGame() {
         showResult(false);
     }
 
-    // Reset game state
     gameState.gameActive = false;
     gameState.countdown = 30;
     gameState.prediction = null;
     gameState.startPrice = null;
 
-    // Re-enable buttons
     const upBtn = document.getElementById('upBtn');
     const downBtn = document.getElementById('downBtn');
-    
     if (upBtn) upBtn.disabled = false;
     if (downBtn) downBtn.disabled = false;
-    
+
     const countdownElement = document.getElementById('countdown');
     if (countdownElement) countdownElement.textContent = '30';
 
     updateDisplay();
 }
 
-// Show result
 function showResult(isCorrect) {
     const resultContainer = document.getElementById('resultContainer');
     if (!resultContainer) return;
@@ -175,31 +136,85 @@ function showResult(isCorrect) {
     resultContainer.innerHTML = "";
     resultContainer.appendChild(resultText);
 
-    // Remove result after 3 seconds
     setTimeout(() => {
         resultContainer.innerHTML = "";
     }, 3000);
 }
 
-// Complete task
-function completeTask(event) {
+// ✅ Complete Task button (like CLAIM, JOIN)
+function completeTask(taskId, reward) {
     const button = event.target;
-    const taskId = button.getAttribute('data-task-id');
-    const reward = parseInt(button.getAttribute('data-reward')) || 1;
-    
+
+    if (button.disabled) return;
+
     gameState.tokens += reward;
     updateDisplay();
-    
-    // Disable button and show completed
+
     button.textContent = 'COMPLETED';
     button.disabled = true;
     button.style.background = '#666';
-    
-    // Remove event listener
-    button.removeEventListener('click', completeTask);
 }
 
-// Copy invite link
+// ✅ Watch Video Task (with view count)
+function watchVideoTask(taskId, reward, maxViews) {
+    const button = event.target;
+    let watched = parseInt(button.getAttribute('data-watched')) || 0;
+
+    showAd().then(() => {
+        watched++;
+        button.setAttribute('data-watched', watched);
+        button.textContent = `WATCH ${watched}/${maxViews}`;
+
+        if (watched >= maxViews) {
+            gameState.tokens += reward;
+            button.textContent = 'COMPLETED';
+            button.disabled = true;
+            button.style.background = '#666';
+        }
+
+        updateDisplay();
+    }).catch((err) => {
+        console.error("Ad error:", err);
+        alert("Ad failed to load. Please try again.");
+    });
+}
+
+// ✅ Show interstitial ad (rewarded)
+function showAd() {
+    return new Promise((resolve, reject) => {
+        if (!window.sad) return reject("Adsgram SDK not loaded.");
+        sad.showInterstitial({
+            callback: (result) => {
+                if (result === 'success') resolve();
+                else reject(result);
+            }
+        });
+    });
+}
+
+// ✅ NEW: Init Adsgram reward logic
+function initAdsgram() {
+    // Insert your AdsGram blockId here
+    const AdController = window.Adsgram?.init({
+        blockId: "int-13300"
+    });
+
+    const adButton = document.getElementById('ad');
+    if (!adButton || !AdController) return;
+
+    adButton.addEventListener('click', () => {
+        AdController.show().then((result) => {
+            gameState.tokens += 1; // ✅ reward user
+            updateDisplay();
+            alert('Rewarded +1 Token!');
+        }).catch((err) => {
+            console.error("AdsGram error:", err);
+            alert("Ad failed: " + JSON.stringify(err, null, 4));
+        });
+    });
+}
+
+// ✅ Invite Copy
 function copyInviteLink(event) {
     const inviteUrl = document.getElementById('inviteUrl');
     if (!inviteUrl) return;
@@ -215,59 +230,45 @@ function copyInviteLink(event) {
     });
 }
 
-// Calculate TON amount
+// ✅ Withdrawal Calculations
 function calculateTonAmount() {
     const pointAmount = parseInt(this.value) || 0;
     const tonAmount = (pointAmount / 1000) * 0.1;
     const tonAmountElement = document.getElementById('tonAmount');
-    
     if (tonAmountElement) {
         tonAmountElement.value = tonAmount.toFixed(4) + ' TON';
     }
 }
 
-// Submit withdrawal
+// ✅ Submit Withdrawal
 function submitWithdrawal() {
     const walletAddress = document.getElementById('walletAddress');
     const pointAmount = document.getElementById('pointAmount');
-    
+
     if (!walletAddress || !pointAmount) return;
-    
+
     const address = walletAddress.value;
     const points = parseInt(pointAmount.value);
-    
+
     if (!address || points < 1000 || points > gameState.points) {
         alert('Please check your wallet address and point amount!');
         return;
     }
-    
-    // Simulate withdrawal request
+
     alert('Withdrawal request submitted! Admin will process within 24 hours.');
-    
-    // Reset form
+
     walletAddress.value = "";
     pointAmount.value = "";
-    
+
     const tonAmount = document.getElementById('tonAmount');
     if (tonAmount) tonAmount.value = "";
 }
 
-// Page navigation (for single page version)
+// ✅ Navigation (for multi-page or single-page apps)
 function showPage(pageId) {
-    // Hide all pages
-    document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
-    });
-    
-    // Remove active class from all navigators
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Show selected page
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     const page = document.getElementById(pageId);
     if (page) page.classList.add('active');
-    
-    // Add active class to corresponding navigator
     event.target.classList.add('active');
 }
