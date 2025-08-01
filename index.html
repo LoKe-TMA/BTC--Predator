@@ -11,7 +11,7 @@
         <button id="ad">Show ad</button>
         <script>
             // insert your block id
-            const AdController = window.Adsgram.init({ blockId: "your-block-id" });
+            const AdController = window.Adsgram.init({ blockId: "int-13300" });
             const button = document.getElementById('ad');
             button.addEventListener('click', () => {
                 AdController.show().then((result) => {
@@ -26,38 +26,4 @@
             })
         </script>
     </body>
-</html>                <button class="prediction-btn up-btn" id="upBtn">
-                    UP ⬆️
-                </button>
-                <button class="prediction-btn down-btn" id="downBtn">
-                    DOWN ⬇️
-                </button>
-            </div>
-            
-            <div class="result-container" id="resultContainer">
-                <!-- Result will appear here -->
-            </div>
-            
-            <div class="ad-banner">
-                <div style="opacity: 0.6;">📺 Advertisement Space (728x90)</div>
-                <div style="font-size: 12px; margin-top: 5px;">Your ads could be here!</div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Floating Withdrawal Button -->  
-    <button class="withdrawal-float" onclick="showPage('withdrawalPage')" title="Withdrawal"></button>  
-    
-    <!-- Navigation -->  
-    <div class="navigation">  
-        <div class="nav-buttons">  
-            <button class="nav-btn active" onclick="showPage('gamePage')">GAME</button>  
-            <button class="nav-btn" onclick="window.location.href='tasks.html'">TASKS</button>  
-            <button class="nav-btn" onclick="window.location.href='invite.html'">INVITE</button>  
-            <button class="nav-btn" onclick="window.location.href='withdrawal.html'">WITHDRAW</button>  
-        </div>  
-    </div>
-    
-    <script src="script.js"></script>
-</body>
 </html>
