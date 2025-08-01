@@ -2,16 +2,167 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BTC Predator - Play & Earn</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BTC Predator Test TMA</title>
     <link rel="stylesheet" href="styles.css">
+    
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+    <style>
+        /* သင့် styles.css ထဲက body/html နဲ့ ပတ်သက်တဲ့ styles တွေကို ဒီမှာ ယာယီထည့်နိုင်ပါတယ်။
+           ဒါမှမဟုတ် styles.css ကို အရင်ဆုံး သေချာချိတ်ထားပါ။ */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1A212D; /* Default for dark Telegram theme */
+            color: #FFFFFF; /* Default text color */
+            overflow: hidden; /* Prevent scrolling issues in TMA */
+        }
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background-color: #2D3944;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        .header, .price-container, .timer-container, .prediction-buttons, .result-container {
+            margin-bottom: 20px;
+        }
+        .balance-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+        .balance-item {
+            background-color: #4CAF50;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+        .balance-label {
+            font-size: 0.7em;
+            opacity: 0.8;
+        }
+        .balance-value {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .price-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #FFD700;
+        }
+        .timer {
+            font-size: 2em;
+            font-weight: bold;
+            color: #FF5722;
+        }
+        .prediction-btn {
+            background-color: #007BFF;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background-color 0.3s;
+        }
+        .prediction-btn:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        .prediction-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .up-btn { background-color: #28a745; }
+        .up-btn:hover:not(:disabled) { background-color: #218838; }
+        .down-btn { background-color: #dc3545; }
+        .down-btn:hover:not(:disabled) { background-color: #c82333; }
+        .result-text {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .result-correct { color: #28a745; }
+        .result-wrong { color: #dc3545; }
+        .ad-banner {
+            background-color: #3f4a56;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #bbb;
+        }
+        .ad-banner button { /* added for testing Ad button */
+            background-color: #8A2BE2;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Navigation styles - copied from your existing code for consistency */
+        .navigation {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #333;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 600px; /* Adjust as needed */
+            margin: 0 auto;
+        }
+
+        .nav-btn {
+            background-color: #555;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            flex: 1;
+            margin: 0 5px;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background-color: #777;
+        }
+
+        .nav-btn.active {
+            background-color: #4CAF50;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div id="gamePage" class="page active">
             <div class="header">
-                <div class="logo">🎯 BTC PREDATOR</div>
+                <div class="logo">🎯 BTC PREDATOR TEST</div>
                 <div class="balance-container">
                     <div class="balance-item">
                         <div class="balance-label">TOKENS</div>
@@ -47,9 +198,8 @@
                 </div>
 
             <div class="ad-banner">
-                <div style="opacity: 0.6;">📺 Advertisement Space (728x90)</div>
-                <div style="font-size: 12px; margin-top: 5px;">Your ads could be here!</div>
-                </div>
+                <div style="opacity: 0.6;">📺 Advertisement Space (Test Only)</div>
+                <button id="ad">Show Adsgram Ad</button> </div>
         </div>
     </div>
 
