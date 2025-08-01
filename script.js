@@ -272,3 +272,5 @@ function showPage(pageId) {
     if (page) page.classList.add('active');
     event.target.classList.add('active');
 }
+
+<script src="https://sad.adsgram.ai/js/sad.min.js"></script>
