@@ -1,16 +1,20 @@
 // Global game state
-let gameState = {  
-    tokens: 50,  
-    points: 1250,  
-    currentPrice: 43567.89,  
-    gameActive: false,  
-    countdown: 10,  
-    prediction: null,  
+let gameState = {
+    tokens: 50,
+    points: 1250,
+    currentPrice: 43567.89,
+    gameActive: false,
+    countdown: 10,
+    prediction: null,
     startPrice: null
-};  
+};
 
 let countdownInterval;
 let priceInterval;
+
+// Adsgram AdController ကို Global Variable အနေနဲ့ သတ်မှတ်ပါ။
+// ဒါမှ watchVideoTask ထဲမှာ ပြန်သုံးလို့ရပါမယ်။
+let globalAdController;
 
 document.addEventListener('DOMContentLoaded', function() {
     initGame();
@@ -26,7 +30,7 @@ function initGame() {
 function setupEventListeners() {
     const upBtn = document.getElementById('upBtn');
     const downBtn = document.getElementById('downBtn');
-    
+
     if (upBtn) upBtn.addEventListener('click', () => makePrediction('up'));
     if (downBtn) downBtn.addEventListener('click', () => makePrediction('down'));
 
@@ -38,13 +42,35 @@ function setupEventListeners() {
 
     const copyBtn = document.getElementById('copyBtn');
     if (copyBtn) copyBtn.addEventListener('click', copyInviteLink);
+
+    // Adsgram Ad Button (if exists on index.html or other pages)
+    // index.html မှာ ad banner နေရာပဲရှိပြီး button ID "ad" မရှိပါဘူး။
+    // tasks.html က watchVideoTask အတွက်ပဲ ad လိုတာဆိုရင် ဒီ block ကို ဖြုတ်ပစ်နိုင်ပါတယ်။
+    // ဒါမှမဟုတ် index.html မှာလဲ ad ID "ad" နဲ့ button ထားပေးရပါမယ်။
+    const adButton = document.getElementById('ad');
+    if (adButton) {
+        adButton.addEventListener('click', () => {
+            if (globalAdController) {
+                globalAdController.show().then((result) => {
+                    gameState.tokens += 1; // ✅ reward user
+                    updateDisplay();
+                    alert('Rewarded +1 Token!');
+                }).catch((err) => {
+                    console.error("AdsGram error:", err);
+                    alert("Ad failed: " + JSON.stringify(err, null, 4));
+                });
+            } else {
+                alert("Adsgram not initialized.");
+            }
+        });
+    }
 }
 
 function updateDisplay() {
     const tokenBalance = document.getElementById('tokenBalance');
     const pointBalance = document.getElementById('pointBalance');
     const btcPrice = document.getElementById('btcPrice');
-    
+
     if (tokenBalance) tokenBalance.textContent = gameState.tokens;
     if (pointBalance) pointBalance.textContent = gameState.points;
     if (btcPrice) btcPrice.textContent = `$${gameState.currentPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
@@ -142,7 +168,8 @@ function showResult(isCorrect) {
 }
 
 // ✅ Complete Task button (like CLAIM, JOIN)
-function completeTask(taskId, reward) {
+// event parameter ကို ထည့်ပေးရပါမယ်။
+function completeTask(taskId, reward, event) {
     const button = event.target;
 
     if (button.disabled) return;
@@ -156,10 +183,12 @@ function completeTask(taskId, reward) {
 }
 
 // ✅ Watch Video Task (with view count)
-function watchVideoTask(taskId, reward, maxViews) {
+// event parameter ကို ထည့်ပေးရပါမယ်။
+function watchVideoTask(taskId, reward, maxViews, event) {
     const button = event.target;
     let watched = parseInt(button.getAttribute('data-watched')) || 0;
 
+    // Adsgram AdController ကို သုံးဖို့ showAd() function ကို ပြင်ထားပါတယ်။
     showAd().then(() => {
         watched++;
         button.setAttribute('data-watched', watched);
@@ -180,14 +209,17 @@ function watchVideoTask(taskId, reward, maxViews) {
 }
 
 // ✅ Show interstitial ad (rewarded)
+// globalAdController ကို သုံးဖို့ ပြင်လိုက်ပါ
 function showAd() {
     return new Promise((resolve, reject) => {
-        if (!window.sad) return reject("Adsgram SDK not loaded.");
-        sad.showInterstitial({
-            callback: (result) => {
-                if (result === 'success') resolve();
-                else reject(result);
-            }
+        if (!globalAdController) { // Adsgram Controller မရှိရင် reject လုပ်ပါ
+            return reject("Adsgram SDK not loaded or AdController not initialized.");
+        }
+        globalAdController.show().then((result) => { // globalAdController.show() ကို ခေါ်ပါ
+            if (result === 'success') resolve(); // Adsgram က promise return မှာ 'success' ဒါမှမဟုတ် 'fail' ပြန်ပေးပါတယ်
+            else reject(result);
+        }).catch((err) => {
+            reject(err);
         });
     });
 }
@@ -195,23 +227,13 @@ function showAd() {
 // ✅ NEW: Init Adsgram reward logic
 function initAdsgram() {
     // Insert your AdsGram blockId here
-    const AdController = window.Adsgram?.init({
-        blockId: "int-13300"
+    // globalAdController ကို ဤနေရာတွင် initialize လုပ်ပါ။
+    globalAdController = window.Adsgram?.init({
+        blockId: "int-13300" // သင့်ရဲ့ မှန်ကန်တဲ့ blockId ကို ထည့်ပါ။
     });
 
-    const adButton = document.getElementById('ad');
-    if (!adButton || !AdController) return;
-
-    adButton.addEventListener('click', () => {
-        AdController.show().then((result) => {
-            gameState.tokens += 1; // ✅ reward user
-            updateDisplay();
-            alert('Rewarded +1 Token!');
-        }).catch((err) => {
-            console.error("AdsGram error:", err);
-            alert("Ad failed: " + JSON.stringify(err, null, 4));
-        });
-    });
+    // setupEventListeners ထဲမှာ Ad button click listener ကို ရွှေ့ထားပြီးဖြစ်ပါတယ်။
+    // ဒီနေရာမှာတော့ Adsgram ကို initialize လုပ်ပေးရုံပါပဲ။
 }
 
 // ✅ Invite Copy
@@ -265,12 +287,14 @@ function submitWithdrawal() {
 }
 
 // ✅ Navigation (for multi-page or single-page apps)
-function showPage(pageId) {
+// event parameter ကို ထည့်ပေးရပါမယ်။
+function showPage(pageId, event) {
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     const page = document.getElementById(pageId);
     if (page) page.classList.add('active');
-    event.target.classList.add('active');
+    // event.target ကို မရှိတဲ့နေရာမှာ ခေါ်တာမျိုး မဖြစ်အောင် စစ်ပါ
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
 }
-
-
