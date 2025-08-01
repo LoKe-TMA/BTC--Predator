@@ -3,38 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BTC Predator - Play & Earn</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Adsgram Test</title>
 </head>
 <body>
-    <div class="container">
-        <div id="gamePage" class="page active">
-            <div class="header">
-                <div class="logo">🎯 BTC PREDATOR</div>
-                <div class="balance-container">
-                    <div class="balance-item">
-                        <div class="balance-label">TOKENS</div>
-                        <div class="balance-value" id="tokenBalance">50</div>
-                    </div>
-                    <div class="balance-item">
-                        <div class="balance-label">POINTS</div>
-                        <div class="balance-value" id="pointBalance">1250</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="price-container">
-                <div class="price-label">BTC/USDT LIVE PRICE</div>
-                <div class="price-value" id="btcPrice">$43,567.89</div>
-            </div>
-            
-            <div class="timer-container">
-                <div class="timer" id="countdown">30</div>
-                <div class="timer-label">SECONDS REMAINING</div>
-            </div>
-            
+    <button id="testAdBtn">Adsgram ကြော်ငြာ ပြပါ</button>
+
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const AdController = window.Adsgram?.init({
+                blockId: "int-13300" // သင့်ရဲ့ မှန်ကန်တဲ့ blockId ဖြစ်ကြောင်း သေချာပါစေ
+            });
+
+            const testAdBtn = document.getElementById('testAdBtn');
+            if (testAdBtn && AdController) {
+                testAdBtn.addEventListener('click', () => {
+                    AdController.show().then((result) => {
+                        alert('ကြော်ငြာ အောင်မြင်စွာ ပြသနိုင်ပါပြီ။ ရလဒ်: ' + result);
+                    }).catch((err) => {
+                        console.error("AdsGram test error:", err);
+                        alert("Test မှာ ကြော်ငြာ ကျရှုံးပါပြီ: " + JSON.stringify(err, null, 4));
+                    });
+                });
+            } else {
+                console.log("Ad button ဒါမှမဟုတ် Adsgram Controller ကို ရှာမတွေ့ပါဘူး။");
+            }
+        });
+    </script>
+</body>
+</html>
+v           
             <div class="prediction-buttons">
                 <button class="prediction-btn up-btn" id="upBtn">
                     UP ⬆️
