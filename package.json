@@ -1,0 +1,19 @@
+{
+  "name": "1v1hunter-bot",
+  "version": "1.0.0",
+  "description": "1v1Hunter - PUBG 1v1 matchmaking Telegram bot (Telegraf + MongoDB)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "mongoose": "^7.0.0",
+    "telegraf": "^4.12.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.0"
+  }
+}
