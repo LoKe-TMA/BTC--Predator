@@ -10,7 +10,7 @@ const Queue = require("./models/Queue");
 const Match = require("./models/Match");
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const BOT_TOKEN = process.env.PORT;
+const PORT = process.env.PORT;
 const MONGO_URL = process.env.MONGO_URL;
 const ADMIN_ID = process.env.ADMIN_ID ? Number(process.env.ADMIN_ID) : null;
 
