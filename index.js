@@ -1,6 +1,7 @@
 // index.js
 require("dotenv").config();
-const { Telegraf, Markup } = require("telegraf");
+const { Telegraf, Markup, session } = require("telegraf"); // session ကို ထည့်သွင်းလိုက်ပါ
+const { TelegrafMongoSession } = require("telegraf-session-mongodb"); // session-mongodb ကို ထည့်သွင်းလိုက်ပါ
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 
@@ -9,6 +10,7 @@ const Queue = require("./models/Queue");
 const Match = require("./models/Match");
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
+const BOT_TOKEN = process.env.PORT;
 const MONGO_URL = process.env.MONGO_URL;
 const ADMIN_ID = process.env.ADMIN_ID ? Number(process.env.ADMIN_ID) : null;
 
@@ -73,40 +75,62 @@ bot.start(async (ctx) => {
     { $set: { username: tg.username ? `@${tg.username}` : "", createdAt: new Date() } },
     { upsert: true }
   );
+  // စကားဝိုင်းကို reset လုပ်ပါ
+  ctx.session.state = null; 
   await ctx.reply("Welcome to 1v1Hunter — PUBG 1v1 matchmaking bot!", mainKeyboard());
 });
 
 // ---------- PUBG ID setup ----------
 bot.hears("🎮 PUBG ID", async (ctx) => {
-  const tg = ctx.from;
+  // state ကို 'waiting_for_pubg_name' သို့ သတ်မှတ်
+  ctx.session.state = "waiting_for_pubg_name";
   await ctx.reply("Please enter your PUBG In-Game Name:");
-  // next message will be the name
-  const nameListener = async (msgCtx) => {
-    if (!msgCtx.message || !msgCtx.message.text) return;
-    const pubgName = msgCtx.message.text.trim();
-    // ask for ID
-    await msgCtx.reply("Now enter your PUBG ID (numbers):");
-    // second listener for id
-    const idListener = async (idCtx) => {
-      if (!idCtx.message || !idCtx.message.text) return;
-      const pubgId = idCtx.message.text.trim();
+});
+
+// ** bot.off error ကို ဖြေရှင်းရန်အတွက် - stepped conversation ကို Session ဖြင့် ကိုင်တွယ်သည် **
+bot.on("text", async (ctx, next) => {
+  const tg = ctx.from;
+  const state = ctx.session.state;
+  const text = ctx.message.text.trim();
+
+  try {
+    if (state === "waiting_for_pubg_name") {
+      // 1. In-Game Name ရပြီ
+      ctx.session.pubgName = text; // session တွင် ယာယီ သိမ်းထား
+      ctx.session.state = "waiting_for_pubg_id"; // နောက်အဆင့်သို့ ပြောင်း
+      return ctx.reply("Now enter your PUBG ID (numbers):");
+    }
+
+    if (state === "waiting_for_pubg_id") {
+      // 2. In-Game ID ရပြီ
+      const pubgId = text;
+      const pubgName = ctx.session.pubgName;
+
       // save to user
       await User.findOneAndUpdate(
         { telegramId: tg.id },
         { $set: { username: tg.username ? `@${tg.username}` : "", "profile.pubgName": pubgName, "profile.pubgId": pubgId } },
         { upsert: true }
       );
-      await idCtx.reply(`Saved! Your PUBG profile:\n• ${pubgName}\n• ID: ${pubgId}`, mainKeyboard());
-      // remove id listener
-      bot.off("text", idListener);
-    };
-    // attach second listener once
-    bot.on("text", idListener);
-    // remove name listener
-    bot.off("text", nameListener);
-  };
-  bot.on("text", nameListener);
+      await ctx.reply(`Saved! Your PUBG profile:\n• ${pubgName}\n• ID: ${pubgId}`, mainKeyboard());
+
+      // စကားဝိုင်း ပြီးဆုံးသောအခါ state ကို ရှင်းပစ်
+      ctx.session.state = null;
+      ctx.session.pubgName = null;
+      return; // ဤနေရာတွင် ရပ်မည်
+    }
+  } catch (err) {
+    console.error("Conversation state error:", err);
+    ctx.session.state = null; // Error ဖြစ်ရင်လည်း state ကို ရှင်းပစ်
+    await ctx.reply("An error occurred during profile setup. Please try again from the main menu.");
+    return;
+  }
+  
+  // အကယ်၍ state မရှိပါက (သို့) PUBG ID conversation တွင် မဟုတ်ပါက၊ 
+  // အခြားသော bot.hears, bot.command များသို့ ဆက်လက်လုပ်ဆောင်ရန် next() ကို ခေါ်
+  return next(); 
 });
+
 
 // ---------- Find Match flow ----------
 bot.hears("🔍 Find Match", async (ctx) => {
@@ -247,7 +271,8 @@ bot.hears("🏆 Leaderboard", async (ctx) => {
 
 // Provide command as well
 bot.command("leaderboard", async (ctx) => {
-  return bot.telegram.sendMessage(ctx.chat.id, "Fetching leaderboard...").then(() => bot.hears("🏆 Leaderboard", ctx));
+  // Use action directly for better logic
+  return bot.hears("🏆 Leaderboard", ctx);
 });
 
 // ---------- Graceful shutdown ----------
@@ -257,13 +282,20 @@ process.once('SIGTERM', () => { bot.stop('SIGTERM'); mongoose.disconnect(); });
 // ---------- Connect DB & Launch ----------
 mongoose.connect(MONGO_URL, { autoIndex: true })
   .then(() => {
+    console.log("✅ MongoDB connected");
+
+    // ** Mongo Session Middleware ကို ထည့်သွင်းပါ **
+    const mongoSession = new TelegrafMongoSession(MONGO_URL, { database: 'telegraf', collection: 'sessions' });
+    bot.use(session({
+        store: mongoSession.getSession(),
+        ttl: 60 * 60 * 24 * 7 // Session lasts for 7 days
+    }));
+    
     bot.launch()
       .then(() => console.log("🚀 1v1Hunter Bot started"))
       .catch(err => console.error("Bot launch error:", err));
-    console.log("✅ MongoDB connected");
   })
   .catch((err) => {
     console.error("MongoDB connection error:", err);
     process.exit(1);
   });
-          
